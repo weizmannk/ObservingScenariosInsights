@@ -1,3 +1,8 @@
+# Zenodo-related files to ignore
+zenodo/
+.zenodo/
+runs.zip
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
