@@ -12,7 +12,6 @@
 ---------------------------------------------------------------------------------------------------
 """
 
-import os
 from tqdm.auto import tqdm
 import re
 import requests
@@ -21,7 +20,7 @@ import requests
 
 permanent_doi = "10061254"
 file_name = "runs.zip"
-save_path = "../data/output"
+save_path = "../data/zenodo"
 
 
 class ZenodoDownloader:
