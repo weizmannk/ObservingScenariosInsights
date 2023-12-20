@@ -44,13 +44,10 @@ plt.rcParams.update(
 )
 
 # Ensure grid is behind other plot elements
-plt.rc("axes", axisbelow=True)
+# plt.rc("axes", axisbelow=True)
 
 
-colors = {"L1": "#4ba6ff", "H1": "#9b59b6", "V1": "#ee0000", "K1": "#00FF00"}
-
-
-print(colors)  # Display the updated dictionary
+# colors = {"L1": "#4ba6ff", "H1": "#9b59b6", "V1": "#ee0000", "K1": "#00FF00"}
 
 
 class BNSInspiralRangeCalculator:
@@ -148,74 +145,64 @@ class BNSInspiralRangeCalculator:
         print("\n======================================\n")
 
     def plot_sensitivity_curves(self, run_names, outdir):
-        fig = plt.figure(figsize=(4.5, 3))
+        fig, axs = plt.subplots(2, 1, figsize=(8, 6))
 
-        dashed_handles = []  # Handles for dashed lines
-        dashed_labels = []  # Labels for dashed lines
-        solid_handles = []  # Handles for solid lines
-        solid_labels = []  # Labels for solid lines
-
-        # Initialize labels for detectors
-        labels = {ifo: True for ifo in self.ifos}
-
-        for run_name in run_names:
-            print("\n======================================\n")
-            print(f"The BNS range in Run {run_name},")
-            if run_name == "O4a":
-                print("with the Measured PSD\n")
-                linestyle = "--"  # Use dashed lines for O4a detectors
-            else:
-                print("with the Ideal PSD\n")
-                linestyle = "-"  # Use solid lines for other runs
+        for idx, run_name in enumerate(run_names):
+            dashed_handles = []  # Handles for dashed lines
+            dashed_labels = []  # Labels for dashed lines
+            solid_handles = []  # Handles for solid lines
+            solid_labels = []  # Labels for solid lines
 
             for ifo in self.ifos:
                 if ifo in self.sensitivity_files.get(run_name):
+                    if run_name == "O4b" and ifo == "H1":
+                        continue
                     freq, psd = self.load_data(run_name, ifo)
                     asd = np.sqrt(psd)
 
-                    label = f"{ifo} {'O4a' if run_name == 'O4a' else 'O4b'}"
+                    if run_name == "O4b" and ifo == "L1":
+                        label = f"LIGO (L1-H1)"
+                        linestyle = "--" if run_name == "O4a" else "-"
+                    else:
+                        label = f"{ifo}"
+                        linestyle = "--" if run_name == "O4a" else "-"
 
-                    plt.loglog(
+                    (line,) = axs[idx].loglog(
                         freq,
                         asd,
                         label=label,
-                        color=colors[ifo],
                         linewidth=1,
-                        alpha=0.7,
+                        alpha=1.0,
                         linestyle=linestyle,
                     )
 
                     if linestyle == "--":
-                        dashed_handles.append(
-                            plt.Line2D(
-                                [0, 1], [0, 1], color=colors[ifo], linestyle=linestyle
-                            )
-                        )
+                        dashed_handles.append(line)
                         dashed_labels.append(label)
                     else:
-                        solid_handles.append(
-                            plt.Line2D(
-                                [0, 1], [0, 1], color=colors[ifo], linestyle=linestyle
-                            )
-                        )
+                        solid_handles.append(line)
                         solid_labels.append(label)
 
-        legend1 = plt.legend(
-            dashed_handles, dashed_labels, loc="upper left", title="O4a"
-        )
-        legend2 = plt.legend(
-            solid_handles, solid_labels, loc="lower right", title="O4b"
-        )
-        plt.gca().add_artist(legend1)  # Ensure both legends are displayed
+            axs[idx].set_xlabel(r"$\mathrm{Frequency}\,\mathrm{[Hz]}$", fontsize=12)
+            axs[idx].set_ylabel(r"$\mathrm{ASD}\,[1/\sqrt{\mathrm{Hz}}]$", fontsize=12)
+            axs[idx].tick_params(labelsize=10)  # Adjust tick label size
+            axs[idx].set_xlim([10, 4000])
+            axs[idx].set_ylim(1e-24, 1e-19)
+            axs[idx].grid(True)
+            axs[idx].set_title(f"Run {run_name}", fontsize=14)
 
-        plt.xlabel(r"$\mathrm{Frequency}\,\mathrm{[Hz]}$")
-        plt.ylabel(r"$\mathrm{ASD}\,[1/\sqrt{\mathrm{Hz}}]$")
-        plt.xlim([10, 4000])
-        plt.ylim(1e-24, 1e-20)
+            legend = axs[idx].legend(
+                handles=dashed_handles if run_name == "O4a" else solid_handles,
+                labels=dashed_labels if run_name == "O4a" else solid_labels,
+                loc="upper center" if run_name == "O4a" else "upper center",
+                fontsize=10,  # Adjust legend font size
+            )
+            # Assign colors to legend labels
+            for lh, ll in zip(legend.legend_handles, legend.get_texts()):
+                ll.set_color(lh.get_color())
 
-        plt.grid()
-        fig.tight_layout()
-        plt.savefig(f"{outdir}/Strain_HLV.png", dpi=300)
+        plt.tight_layout()
+        plt.savefig(f"{outdir}/Strain_HLV_subplots.png", dpi=300)
         plt.close()
 
 
