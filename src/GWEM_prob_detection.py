@@ -25,7 +25,7 @@ from tqdm.auto import tqdm
 data_dir = Path("/home/weizmann.kiendrebeogo/ULTRASAT").expanduser()
 output_dir = Path("./outdir").expanduser()
 telescopes = ["LSST", "ZTF"]
-run_names = ["O4", "O4a", "O5"]
+run_names = ["O4a", "O4", "O5"]
 models = ["Bu2019lm"]
 
 # Ensure the output directory exists

@@ -28,7 +28,7 @@ outdir = "../output/Plots"
 os.makedirs(outdir, exist_ok=True)
 
 # Define the areas (FOV) and method to use for tessellation
-areas = {"LSST": 9.6 * u.deg**2, "ZTF": 47 * u.deg**2, "ULTRASAT": 204 * u.deg**2}
+areas = {"ULTRASAT": 204 * u.deg**2, "ZTF": 47 * u.deg**2, "LSST": 9.6 * u.deg**2}
 method = skygrid.healpix
 
 # Create a figure for the subplots

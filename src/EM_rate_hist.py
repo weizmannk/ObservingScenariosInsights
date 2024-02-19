@@ -6,10 +6,10 @@ Author          : Ramodgwendé Weizmann KIENDREBEOGO
 Email           : kiend.weizman7@gmail.com / weizmann.kiendrebeogo@oca.eu
 Repository      : https://github.com/weizmannk/ObservingScenariosInsights.git
 Created On      : December 2023
-Description     : This script visualizes the annual EM detection rate for LSST and ZTF
+Description     : This script visualizes the annual EM detection rate for LSST, ZTF, and ULTRASAT
                   across different observational runs. It calculates the rates based on
                   the data analysis of gravitational waves and annotates the plots with
-                  the median detection rates.
+                  the median detection rates and error bars.
 ---------------------------------------------------------------------------------------------------
 """
 
@@ -28,7 +28,7 @@ if not os.path.isdir(outdir):
 path = "../data/gwem_detection"
 data_paths = {
     "O4a": os.path.join(path, "gwem_O4a_BNS_detection.dat"),
-    "O4b": os.path.join(path, "gwem_O4_BNS_detection.dat"),  # Update if necessary
+    "O4b": os.path.join(path, "gwem_O4_BNS_detection.dat"),
     "O5": os.path.join(path, "gwem_O5_BNS_detection.dat"),
 }
 
@@ -51,108 +51,103 @@ data_dict = {}
 # Read and process the data from each file
 for key, file_path in data_paths.items():
     df = pd.read_csv(file_path, delimiter="\t")
-    df["LSST_detected"] = df["LSST_detection"] == 1
+    df["ULTRASAT_detected"] = df["ULTRASAT_detection"] == 1
     df["ZTF_detected"] = df["ZTF_detection"] == 1
+    df["LSST_detected"] = df["LSST_detection"] == 1
+
     data_dict[key] = df
 
 # Initialize dictionaries to hold EM fractions and rates for each telescope
-em_fractions = {"LSST": {}, "ZTF": {}}
-em_rates = {"LSST": {}, "ZTF": {}}
+em_fractions = {"ULTRASAT": {}, "ZTF": {}, "LSST": {}}
+em_rates = {"ULTRASAT": {}, "ZTF": {}, "LSST": {}}
 
 # Calculate EM fractions and rates
 for run, df in data_dict.items():
     total_injections = len(df)
-    lsst_detected = df["LSST_detected"].sum()
-    ztf_detected = df["ZTF_detected"].sum()
 
-    # LSST calculations
-    em_fractions["LSST"][run] = lsst_detected / total_injections
-    em_rates["LSST"][run] = {
-        "EM_rate_lower": em_fractions["LSST"][run] * gw_rates_df.loc[run, "lower"],
-        "EM_rate_mid": em_fractions["LSST"][run] * gw_rates_df.loc[run, "mid"],
-        "EM_rate_upper": em_fractions["LSST"][run] * gw_rates_df.loc[run, "upper"],
-    }
+    # Calculations for each telescope
+    for telescope in ["ULTRASAT", "ZTF", "LSST"]:
+        detected = df[f"{telescope}_detected"].sum()
+        print(run, " : ", telescope, ":", detected)
 
-    # ZTF calculations
-    em_fractions["ZTF"][run] = ztf_detected / total_injections
-    em_rates["ZTF"][run] = {
-        "EM_rate_lower": em_fractions["ZTF"][run] * gw_rates_df.loc[run, "lower"],
-        "EM_rate_mid": em_fractions["ZTF"][run] * gw_rates_df.loc[run, "mid"],
-        "EM_rate_upper": em_fractions["ZTF"][run] * gw_rates_df.loc[run, "upper"],
-    }
+        fraction = detected / total_injections
+        em_rates[telescope][run] = {
+            "EM_rate_mid": fraction * gw_rates_df.loc[run, "mid"],
+            "EM_rate_error_lower": fraction
+            * (gw_rates_df.loc[run, "mid"] - gw_rates_df.loc[run, "lower"]),
+            "EM_rate_error_upper": fraction
+            * (gw_rates_df.loc[run, "upper"] - gw_rates_df.loc[run, "mid"]),
+        }
 
-# Convert the EM rates to a pandas DataFrame for easier visualization and saving
-em_rates_lsst_df = pd.DataFrame.from_dict(em_rates["LSST"], orient="index")
-em_rates_ztf_df = pd.DataFrame.from_dict(em_rates["ZTF"], orient="index")
+# Plot the EM rates for each run with error bars
+fig, axes = plt.subplots(1, 3, figsize=(10, 6))  # One subplot for each run
+telescopes = ["ULTRASAT", "ZTF", "LSST"]
+colors = ["blue", "green", "red"]
+bar_width = 0.2
 
-# Plot the EM rates with adjusted bar width and annotated values
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6, 5))  # Set figure size
+# Plotting for each run
+for idx, (run, ax) in enumerate(zip(data_paths.keys(), axes)):
+    for t_idx, telescope in enumerate(telescopes):
 
-# Define bar width and colors
-bar_width = 0.3  # Thinner bars
-lsst_color = "red"
-ztf_color = "green"
+        if telescope == "ULTRASAT" and run in ["O4a", "O4b"]:
 
-# Plot LSST EM Rates
-lsst_bars = ax1.bar(
-    em_rates_lsst_df.index,
-    em_rates_lsst_df["EM_rate_mid"],
-    yerr=[
-        em_rates_lsst_df["EM_rate_mid"] - em_rates_lsst_df["EM_rate_lower"],
-        em_rates_lsst_df["EM_rate_upper"] - em_rates_lsst_df["EM_rate_mid"],
-    ],
-    capsize=5,
-    color=lsst_color,
-    width=bar_width,
-)
-ax1.set_title("LSST EM Rates")
-ax1.set_ylabel("Annual EM Detection Rate (events yr$^{-1}$)")
-ax1.set_xlabel("Observational Run")
-ax1.set_xticks(range(len(em_rates_lsst_df.index)))
-ax1.set_xticklabels(em_rates_lsst_df.index, rotation=45)
+            if run == "O4b":
+                y = 0.7
+            else:
+                y = 0.3
+            ax.text(
+                0.2,
+                y,  # Adjust based on the y-axis scale
+                "N/A",
+                ha="center",
+                va="center",
+                color="black",
+                fontsize=10,
+                bbox=dict(
+                    facecolor="white", edgecolor="black", boxstyle="round,pad=0.5"
+                ),
+            )
+        else:
+            rate = em_rates[telescope][run]["EM_rate_mid"]
+            error_lower = em_rates[telescope][run]["EM_rate_error_lower"]
+            error_upper = em_rates[telescope][run]["EM_rate_error_upper"]
+            ax.bar(
+                t_idx,
+                rate,
+                yerr=[[error_lower], [error_upper]],
+                color=colors[t_idx],
+                width=bar_width,
+                label=telescope,
+                capsize=5,
+                error_kw={"elinewidth": 1, "ecolor": "black"},
+            )
+            ax.text(
+                t_idx - bar_width / 2,
+                rate,  # Adjusted for visibility
+                f"{int(np.round(rate))}",
+                ha="center",
+                va="bottom",
+                color="black",
+                fontsize=12,
+            )
 
-# Plot ZTF EM Rates
-ztf_bars = ax2.bar(
-    em_rates_ztf_df.index,
-    em_rates_ztf_df["EM_rate_mid"],
-    yerr=[
-        em_rates_ztf_df["EM_rate_mid"] - em_rates_ztf_df["EM_rate_lower"],
-        em_rates_ztf_df["EM_rate_upper"] - em_rates_ztf_df["EM_rate_mid"],
-    ],
-    capsize=5,
-    color=ztf_color,
-    width=bar_width,
-)
-ax2.set_title("ZTF EM Rates")
-ax2.set_xlabel("Observational Run")
-ax2.set_xticks(range(len(em_rates_ztf_df.index)))
-ax2.set_xticklabels(em_rates_ztf_df.index, rotation=45)
-
-# Annotate bars with the 'mid' values
-for bar, value in zip(lsst_bars, em_rates_lsst_df["EM_rate_mid"]):
-    ax1.text(
-        bar.get_x() + bar.get_width() / 2 - 0.09,
-        bar.get_height(),
-        f"{int(np.round(value))}",
+    # Adding run names to each subplot
+    ax.text(
+        0.5,
+        0.7,
+        run,
         ha="center",
         va="bottom",
+        transform=ax.transAxes,
+        fontsize=14,
         color="navy",
-        fontsize=12,
     )
 
-for bar, value in zip(ztf_bars, em_rates_ztf_df["EM_rate_mid"]):
-    ax2.text(
-        bar.get_x() + bar.get_width() / 2 - 0.09,
-        bar.get_height(),
-        f"{int(np.round(value))}",
-        ha="center",
-        va="bottom",
-        color="navy",
-        fontsize=12,
-    )
+    ax.set_xticks(np.arange(len(telescopes)))
+    ax.set_xticklabels(telescopes, rotation=45)
 
+    if idx == 0:
+        ax.set_ylabel("Annual EM Detection Rate (events yr$^{-1}$)")
+    ax.legend()
 plt.tight_layout()
-plt.savefig(os.path.join(outdir, "EM_number_hist.pdf"))
-
-# Output
-(em_rates_lsst_df, em_rates_ztf_df)
+plt.savefig(os.path.join(outdir, "EM_detection_rate.pdf"))
