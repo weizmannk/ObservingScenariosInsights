@@ -76,7 +76,7 @@ if not os.path.isdir(outdir):
     os.makedirs(outdir)
 
 
-run_names = ["O4", "O5"]
+run_names = ["O4a", "O5"]
 
 # For splitting into BNS, NSBH, and BBH populations
 ns_max_mass = 3.0

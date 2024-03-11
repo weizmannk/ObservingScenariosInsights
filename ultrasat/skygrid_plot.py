@@ -62,7 +62,7 @@ fig.text(
     va="center",
     fontname="Times New Roman",
     fontsize=20,
-)  # Adjust 'Times New Roman' as needed for your system
+)
 
 # Adjust layout to prevent overlap and accommodate the suptitle
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])

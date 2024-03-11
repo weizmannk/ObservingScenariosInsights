@@ -197,11 +197,11 @@ with tqdm(total=len(run_names) * len(pops)) as progress:
 
                 progress.update()
 
-            del (
-                injections,
-                Data,
-                xmlData,
-                gpsTables,
-                tables,
-                path,
-            )
+    del (
+        injections,
+        Data,
+        xmlData,
+        gpsTables,
+        tables,
+        path,
+    )
