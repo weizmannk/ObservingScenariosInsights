@@ -10,6 +10,8 @@
                 (Farah/GWTC-3 distribution).
 ---------------------------------------------------------------------------------------------------
 """
+#Waveforms using in the observing-scenarios-simulation
+# https://github.com/lpsinger/ligo.skymap/blob/main/ligo/skymap/bayestar/filter.py#L265 
 
 import os
 from tqdm.auto import tqdm
