@@ -17,7 +17,7 @@
 ---------------------------------------------------------------------------------------------------
 """
 
-# python chunky_events.py events.xml.gz chunk-event --chunk-size 5000 --max-events 20000
+# python chunky_events.py events.xml.gz chunk-event --chunk-size 15000 --max-events 15000
 
 
 #!/usr/bin/env python
@@ -86,13 +86,13 @@ def parser():
         "--chunk-size",
         type=int,
         default=15000,
-        help="Number of events per chunk (default: 50000)",
+        help="Number of events per chunk (default: 15000)",
     )
     parser.add_argument(
         "--max-events",
         type=int,
         default=15000,
-        help="Maximum number of events to process at once (default: 99999)",
+        help="Maximum number of events to process at once (default: 15000)",
     )
     return parser
 
