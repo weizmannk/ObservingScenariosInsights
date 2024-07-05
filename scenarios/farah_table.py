@@ -36,6 +36,8 @@ plt.style.use("seaborn-v0_8-deep")
 
 outdir = "../output"
 
+data_dir = "/home/kiendrebeogo/weizmann-doc/GitHub/ObservingScenariosInsights/data"
+
 
 if not os.path.isdir(outdir):
     os.makedirs(outdir)
@@ -127,8 +129,8 @@ def format_with_errorbars(mid, lo, hi):
 
 
 alpha = 0.9  # Confidence band for histograms
-run_names = run_dirs = ["O3", "O4a", "O4b", "O5"]
-pops = ["BNS", "NSBH", "BBH"]  # Populations
+run_names = run_dirs = ["O4a", "O4b"]
+pops = ["BBH"]  # Populations
 classification_names = pops
 classification_colors = seaborn.color_palette(
     "tab10"
@@ -195,7 +197,7 @@ fiducial_log_rate_errs = np.asarray(rates_table["sigma"])
 
 tables = {}
 for run_name, run_dir in zip(tqdm(run_names), run_dirs):
-    path = Path("runs") / run_dir / "farah"
+    path = Path(f"{data_dir}/runs") / run_dir / "farah"
     allsky = Table.read(str(path / "allsky.dat"), format="ascii.fast_tab")
     injections = Table.read(str(path / "injections.dat"), format="ascii.fast_tab")
     allsky.rename_column("coinc_event_id", "event_id")
@@ -230,17 +232,17 @@ for run_name, run_dir in zip(tqdm(run_names), run_dirs):
     source_mass2 = table["mass2"] / zp1
     tables[run_name] = {}
     # Note: copy() below so that we deep-copy table.meta
-    tables[run_name]["BNS"] = table[
-        (source_mass1 < ns_max_mass) & (source_mass2 < ns_max_mass)
-    ].copy()
-    tables[run_name]["NSBH"] = table[
-        (source_mass1 >= ns_max_mass) & (source_mass2 < ns_max_mass)
-    ].copy()
+    # tables[run_name]["BNS"] = table[
+    #    (source_mass1 < ns_max_mass) & (source_mass2 < ns_max_mass)
+    # ].copy()
+    # tables[run_name]["NSBH"] = table[
+    #     (source_mass1 >= ns_max_mass) & (source_mass2 < ns_max_mass)
+    # ].copy()
     tables[run_name]["BBH"] = table[
         (source_mass1 >= ns_max_mass) & (source_mass2 >= ns_max_mass)
     ].copy()
 
-    for key in ["BNS", "NSBH", "BBH"]:
+    for key in ["BBH"]:
         (rates_row,) = rates_table[rates_table["population"] == key]
         tables[run_name][key].meta["rate"] *= rates_row["mass_fraction"]
 
@@ -256,12 +258,12 @@ for run_name, run_dir in zip(tqdm(run_names), run_dirs):
         source_mass2,
     )
 
-
 ## Load old Living Review data sets
 
 old_tables = {}
 
-for pop in tqdm(["BNS", "NSBH", "BBH"]):
+
+for pop in tqdm(["BBH"]):
     url_root = f"https://git.ligo.org/emfollow/obs-scenarios-2019-fits-files/-/raw/master/O3_HLV/{pop.lower()}_astro/"
     allsky = Table.read(f"{url_root}/allsky.dat", format="ascii")
     injections = Table.read(f"{url_root}/injections.dat", format="ascii")
@@ -275,9 +277,15 @@ for pop in tqdm(["BNS", "NSBH", "BBH"]):
 
 ## Cumulative histograms
 
+tables["O3"] = {}
+tables["O3"] = old_tables
+
+run_names_add = ["O4 HL", "O4 HLVK", "O3 alerts"]
 axs = [plt.subplots()[1] for _ in range(len(fieldnames))]
 colors = seaborn.color_palette("colorblind", len(tables))
-linestyles = ["-", "--", ":"]
+linestyles = ["-"]
+
+pops = ["BBH"]
 
 for ax, fieldlabel in zip(axs, fieldlabels):
     ax.set_xlabel(fieldlabel)
@@ -293,12 +301,12 @@ for ax in axs:
             for linestyle in linestyles
         ]
         + [plt.Rectangle((0, 0), 0, 0, facecolor=color) for color in colors],
-        pops + run_names,
+        pops + run_names_add,
     )
 
 axs[0].set_xlim(1e-1, 86400)
 axs[1].set_xlim(1e-5, 1e4)
-axs[2].set_xlim(1e1, 1e4)
+axs[2].set_xlim(10, 1e5)
 
 ax = axs[2]
 zax = ax.twiny()
@@ -320,7 +328,11 @@ zax.set_xticklabels([str(_) for _ in z])
 zax.set_xlabel("Redshift")
 
 for irun, (run_name, tables1) in enumerate(tables.items()):
+
     for ipop, (pop, table) in enumerate(tables1.items()):
+        print("******************")
+        print(ipop, pop)
+
         for ifield, fieldname in enumerate(fieldnames):
             data = table[fieldname]
             data = data[np.isfinite(data)]
@@ -336,8 +348,8 @@ for irun, (run_name, tables1) in enumerate(tables.items()):
             ax.plot(t, y, color=colors[irun], linestyle=linestyles[ipop])
 
 for ax, fieldname in zip(axs, fieldnames):
-    ax.figure.savefig(f"{outdir}/{fieldname}.pdf")
-    ax.figure.savefig(f"{outdir}/{fieldname}.svg")
+    ax.figure.savefig(f"{outdir}/{fieldname}_sarah_new.pdf")
+    ax.figure.savefig(f"{outdir}/{fieldname}_sarah_new.svg")
 
 
 ## Comparisons with O3 public alerts
@@ -377,6 +389,7 @@ ax.set_ylabel("Cumulative fraction of events")
 axs[0, 0].set_xlim(1e0, 86400)
 axs[0, 1].set_xlim(1e-3, 1e4)
 axs[0, 2].set_xlim(1e1, 1e4)
+
 
 for pop, color, ax in zip(pops, classification_colors, axs[:, 0]):
     ax.text(0.05, 0.95, pop, transform=ax.transAxes, color=color, va="top")
@@ -526,7 +539,7 @@ label1.set_ha("right")
 
 for pop, color, axrow in zip(pops, classification_colors, axs):
     for fieldname, ax in zip(fieldnames, axrow):
-        for run_name, linestyle in zip(run_names, linestyles):
+        for run_name, linestyle in zip(run_names_add, linestyles):
             data = tables[run_name][pop][fieldname]
 
             data = data[np.isfinite(data)]
@@ -554,7 +567,7 @@ fig.savefig(f"{outdir}/predictions.pdf")
 fig.savefig(f"{outdir}/predictions.svg")
 
 
-run_names = run_dirs = ["O4a", "O4b", "O5"]
+run_names = run_dirs = ["O4a", "O4b"]
 
 linestyles = ["-", "--", ":"]
 

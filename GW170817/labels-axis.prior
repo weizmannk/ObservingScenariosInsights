@@ -1,0 +1,7 @@
+log10_mej_dyn = Uniform(name='log10_mej_dyn', minimum=-3.5, maximum=-0.5, latex_label='$\\log_{10}(M^{\\rm{dyn}}_{\\rm{ej}}/M_{\odot})$')
+log10_mej_wind = Uniform(name='log10_mej_wind', minimum=-3., maximum=-0.5, latex_label='$\\log_{10}(M^{\\rm{wind}}_{\\rm{ej}}/M_{\odot})$')
+log10_E0 = Constraint(name='log10_E0', minimum=48, maximum=60, latex_label='$\\log_{10}(E_{0}/erg)$')
+chirp_mass = Uniform(name='chirp_mass', minimum=1.18, maximum=1.21, latex_label='$\mathcal{M}_c[M_{\odot}]$')
+mass_ratio = Uniform(name='mass_ratio', minimum=0.125, maximum=1, latex_label='$q$')
+lamda_tilde = Constraint(name='lamda_tilde', minimum=0., maximum=np.inf, latex_label='$\\tilde{\\Lambda}$')
+R_14 = Constraint(name='R_14', latex_label='$R_{1.4}[km]$')

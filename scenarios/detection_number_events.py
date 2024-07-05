@@ -50,7 +50,7 @@ initial = {
 
 # Detected numbers for each run
 detection = {
-    "O4a": {"BNS": 398, "NSBH": 89, "BBH": 4230},
+    "O4a": {"BNS": 405, "NSBH": 89, "BBH": 4230},
     "O4b": {"BNS": 1004, "NSBH": 184, "BBH": 7070},
     "O5": {"BNS": 2003, "NSBH": 356, "BBH": 9809},
 }

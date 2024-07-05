@@ -17,6 +17,8 @@ df["ULTRASAT_detected"] = df["ULTRASAT_detection"] == 1
 df["ZTF_detected"] = df["ZTF_detection"] == 1
 df["LSST_detected"] = df["LSST_detection"] == 1
 
+print(len(df["LSST_detected"]))
+
 # Predicted gravitational wave detection rates for the O5 observational run
 gw_rates = {"lower": 80, "mid": 180, "upper": 400}
 
