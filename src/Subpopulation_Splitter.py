@@ -19,7 +19,7 @@ from astropy.table import Table, join
 from astropy import units as u
 from astropy.cosmology import Planck18 as cosmo, z_at_value
 
-from ligo.skymap.io import read_sky_map
+
 from gwpy.table import Table as gwpy_Table
 
 # -------------------------------------------------------------------------------
@@ -108,6 +108,7 @@ def extract_GPSTime(data, xml_data, GPS_TIME=False, path=None):
         coa_phase.append(xml_data[ID]["coa_phase"])
 
         if GPS_TIME:
+            from ligo.skymap.io import read_sky_map
             gps_time.append(read_sky_map(f"{path}/allsky/{ID}.fits")[1]["gps_time"])
 
     if GPS_TIME:
@@ -134,10 +135,10 @@ def extract_GPSTime(data, xml_data, GPS_TIME=False, path=None):
 
 
 # Directory containing simulation data runs
-datapath = "./data/runs"
+datapath = "./runs"
 
 # Create output directories to save split BNS, NSBH, and BBH results.
-outdir = "./output/nmma_GWparams"
+outdir = "./subpopulations"
 if not os.path.isdir(outdir):
     os.makedirs(outdir)
 

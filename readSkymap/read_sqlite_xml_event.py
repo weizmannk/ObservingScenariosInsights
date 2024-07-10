@@ -30,7 +30,10 @@ with sqlite.open('events.sqlite', 'r') as db:
 ## For XML inside the 'events' folder 
 # ``tablename=`` keyword argument. The following tables were found: 'coinc_definer', 'process_params', 'process', 'time_slide', 'coinc_event', 'coinc_event_map', 'sngl_inspiral'
 
+
+
+
 #but most of parameters you need should be here, I think
-xml_data = gwpy_Table.read('events.xml.gz', format="ligolw", tablename="sim_inspiral")
+xml_data = gwpy_Table.read('0.xml.gz', format="ligolw", tablename="sim_inspiral")
 
 
